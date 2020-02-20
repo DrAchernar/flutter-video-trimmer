@@ -1,4 +1,4 @@
-package com.example.flutter_video_trimmer
+package com.example.flutrim
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

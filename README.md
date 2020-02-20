@@ -1,4 +1,4 @@
-# flutter_video_trimmer
+# flutrim
 
 A new Flutter project.
 
