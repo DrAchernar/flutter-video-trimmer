@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutrim/trimmer/trimmer.dart';
@@ -31,12 +31,25 @@ class _EditorState extends State<Editor> {
     filled: true,
   );
 
+
+  Duration position = new Duration(hours: 0, minutes: 0, seconds: 0);
+
+
   @override
   void initState() {
     super.initState();
     _videoPlayerController = VideoPlayerController.file(widget.picked)
       ..initialize().then((_) {
-        setState(() {});
+        Timer.periodic(Duration(milliseconds: 100), (timer) {
+          setState(() {
+            position = _videoPlayerController
+                .value
+                .position;
+          });
+        });
+        setState(() {
+          gradesRange =  RangeValues(0, _videoPlayerController.value.duration.inSeconds.toDouble());
+        });
         _videoPlayerController.play();
       });
   }
@@ -45,6 +58,7 @@ class _EditorState extends State<Editor> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+
 
     return Scaffold(
       backgroundColor: Colors.grey[900],
@@ -65,17 +79,33 @@ class _EditorState extends State<Editor> {
       ),
       body: Container(
         height: height,
-        child: Stack(
+        child: _videoPlayerController.value.initialized ? Stack(
           children: <Widget>[
             Container(
               height: height / 1.7,
               padding: EdgeInsets.fromLTRB(width / 28, 20, width / 28, 0),
-              child: _videoPlayerController.value.initialized
-                  ? AspectRatio(
-                      aspectRatio: _videoPlayerController.value.aspectRatio,
-                      child: VideoPlayer(_videoPlayerController),
-                    )
-                  : Container(),
+              child: AspectRatio(
+                aspectRatio: _videoPlayerController.value.aspectRatio,
+                child: VideoPlayer(_videoPlayerController),
+              ),
+            ),
+            Positioned(
+              right: width / 2.5,
+              top: height / 1.9,
+              child: Container(
+                color: Colors.black45,
+                padding: EdgeInsets.all(6.0),
+                child: Text(
+                 position.toString()
+                     .substring(0,_videoPlayerController.value.position.toString().indexOf('.')),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
             Positioned(
               top: height / 1.7,
@@ -92,16 +122,30 @@ class _EditorState extends State<Editor> {
                   ),
                   child: RangeSlider(
                     min: 0,
-                    max: 100,
+                    max: _videoPlayerController.value.duration.inSeconds.toDouble(),
                     activeColor: Colors.blue,
                     inactiveColor: Colors.grey,
-                    labels: RangeLabels(
-                        '${gradesRange.start}', '${gradesRange.end}'),
                     values: gradesRange,
+                    onChangeStart: (RangeValues value) {
+                      setState(() {
+                        _videoPlayerController.play();
+                      });
+                    },
+                    onChangeEnd: (RangeValues value) {
+                      setState(() {
+                        _videoPlayerController.pause();
+                      });
+                    },
                     onChanged: (RangeValues value) {
                       setState(() {
-                        if (value.end - value.start >= 5) {
+                        if (value.end - value.start >= 2) {
+                          if(value.start!=gradesRange.start) {
+                            _videoPlayerController.seekTo(Duration(seconds: value.start.truncate()));
+                          } if(value.end!=gradesRange.end){
+                            _videoPlayerController.seekTo(Duration(seconds: value.end.truncate()));
+                          }
                           gradesRange = value;
+
                           timeBoxControllerStart.text =
                               gradesRange.start.truncate().toString();
                           timeBoxControllerEnd.text =
@@ -109,15 +153,11 @@ class _EditorState extends State<Editor> {
                         } else {
                           if (gradesRange.start == value.start) {
                             gradesRange = RangeValues(
-                                gradesRange.start, gradesRange.start + 5);
+                                gradesRange.start, gradesRange.start + 2);
                           } else {
                             gradesRange = RangeValues(
-                                gradesRange.end - 5, gradesRange.end);
+                                gradesRange.end - 2, gradesRange.end);
                           }
-                          timeBoxControllerStart.text =
-                              gradesRange.start.truncate().toString();
-                          timeBoxControllerEnd.text =
-                              gradesRange.end.truncate().toString();
                         }
                         //gradesRange = value;
                       });
@@ -313,6 +353,11 @@ class _EditorState extends State<Editor> {
                         ),
                         RaisedButton(
                           onPressed: () {
+                            setState(() {
+                              _videoPlayerController.seekTo(Duration(seconds: 0));
+                              _videoPlayerController.pause();
+                              gradesRange = RangeValues(0, _videoPlayerController.value.duration.inSeconds.toDouble());
+                            });
                           },
                           color: Colors.grey[850],
                           child: Icon(
@@ -326,7 +371,7 @@ class _EditorState extends State<Editor> {
               ),
             )
           ],
-        ),
+        ) : Center(child: CircularProgressIndicator()),
       ),
     );
   }
