@@ -19,13 +19,13 @@ class Editor extends StatefulWidget {
 
 class _EditorState extends State<Editor> {
   final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
-  bool progress = false;
-
   TextEditingController timeBoxControllerStart = TextEditingController();
   TextEditingController timeBoxControllerEnd = TextEditingController();
-
   VideoPlayerController _videoPlayerController;
   var gradesRange = RangeValues(0, 100);
+  bool progress = false;
+  Duration position = new Duration(hours: 0, minutes: 0, seconds: 0);
+  String outPath;
 
   InputDecoration timeBoxDecoration = InputDecoration(
     contentPadding: EdgeInsets.all(0.0),
@@ -36,12 +36,90 @@ class _EditorState extends State<Editor> {
     filled: true,
   );
 
-  Duration position = new Duration(hours: 0, minutes: 0, seconds: 0);
-  String outPath;
+  void finishedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text("Flutrim"),
+          content: new Text("Finished!"),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   String durationFormatter(Duration dur) {
     return dur.toString().substring(
         0, _videoPlayerController.value.position.toString().indexOf('.'));
+  }
+
+  void _saveVideo() async {
+    String path = outPath;
+    GallerySaver.saveVideo(path).then((bool success) {
+      setState(() {
+        print('Video is saved');
+        progress = false;
+        finishedDialog(context);
+      });
+    });
+  }
+
+  incSecond(which) {
+    setState(() {
+      if (which == 'start') {
+        if (gradesRange.start < gradesRange.end - 1 ) {
+          gradesRange = new RangeValues(gradesRange.start + 1, gradesRange.end);
+          timeBoxControllerStart.text = durationFormatter(
+              new Duration(seconds: gradesRange.start.truncate()));
+          _videoPlayerController
+              .seekTo(Duration(seconds: gradesRange.start.truncate()));
+        }
+      } else {
+        if (gradesRange.end < _videoPlayerController.value.duration.inSeconds.truncate()) {
+          gradesRange = new RangeValues(gradesRange.start, gradesRange.end + 1);
+          timeBoxControllerEnd.text = durationFormatter(
+              new Duration(seconds: gradesRange.end.truncate()));
+          _videoPlayerController
+              .seekTo(Duration(seconds: gradesRange.end.truncate()));
+        }
+      }
+      _videoPlayerController.play(); //for preview
+      _videoPlayerController
+          .pause(); // if not play-pause , seek set position but we cant see preview
+    });
+  }
+
+  subSecond(which) {
+    setState(() {
+      if (which == 'start') {
+        if (gradesRange.start > 0) {
+          gradesRange = new RangeValues(gradesRange.start - 1, gradesRange.end);
+          timeBoxControllerStart.text = durationFormatter(
+              new Duration(seconds: gradesRange.start.truncate()));
+          _videoPlayerController
+              .seekTo(Duration(seconds: gradesRange.start.truncate()));
+        }
+      } else {
+        if (gradesRange.end > gradesRange.start + 1) {
+          gradesRange = new RangeValues(gradesRange.start, gradesRange.end - 1);
+          timeBoxControllerEnd.text = durationFormatter(
+              new Duration(seconds: gradesRange.end.truncate()));
+          _videoPlayerController
+              .seekTo(Duration(seconds: gradesRange.end.truncate()));
+        }
+      }
+      _videoPlayerController.play(); //for preview
+      _videoPlayerController
+          .pause(); // if not play-pause , seek set position but we cant see preview
+    });
   }
 
   @override
@@ -72,38 +150,6 @@ class _EditorState extends State<Editor> {
   void dispose() {
     _videoPlayerController.dispose();
     super.dispose();
-  }
-
-  void _showDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text("Flutrim"),
-          content: new Text("Finished!"),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  void _saveVideo() async {
-    String path = outPath;
-    GallerySaver.saveVideo(path).then((bool success) {
-      setState(() {
-        print('Video is saved');
-        progress = false;
-        _showDialog();
-      });
-    });
   }
 
   @override
@@ -292,7 +338,9 @@ class _EditorState extends State<Editor> {
                                             color: Colors.white,
                                             size: 20,
                                           ),
-                                          onPressed: null,
+                                          onPressed: () {
+                                            subSecond('start');
+                                          },
                                           padding:
                                               EdgeInsets.fromLTRB(0, 0, 12, 0),
                                         ),
@@ -323,7 +371,9 @@ class _EditorState extends State<Editor> {
                                             color: Colors.white,
                                             size: 20,
                                           ),
-                                          onPressed: null,
+                                          onPressed: () {
+                                            incSecond('start');
+                                          },
                                           padding:
                                               EdgeInsets.fromLTRB(0, 0, 12, 0),
                                         ),
@@ -359,7 +409,9 @@ class _EditorState extends State<Editor> {
                                             color: Colors.white,
                                             size: 20,
                                           ),
-                                          onPressed: null,
+                                          onPressed: () {
+                                            subSecond('end');
+                                          },
                                           padding:
                                               EdgeInsets.fromLTRB(0, 0, 12, 0),
                                         ),
@@ -390,7 +442,9 @@ class _EditorState extends State<Editor> {
                                             color: Colors.white,
                                             size: 20,
                                           ),
-                                          onPressed: null,
+                                          onPressed: () {
+                                            incSecond('end');
+                                          },
                                           padding:
                                               EdgeInsets.fromLTRB(0, 0, 12, 0),
                                         ),
