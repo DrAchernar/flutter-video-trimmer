@@ -54,3 +54,5 @@ Path _rangePointer(double size, Offset thumbCenter) {
   thumbPath.close();
   return thumbPath;
 }
+
+

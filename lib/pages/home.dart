@@ -13,10 +13,12 @@ class _HomeState extends State<Home> {
 
   _pickVideo() async {
     File video = await ImagePicker.pickVideo(source: ImageSource.gallery);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => Editor(picked: video)),
-    );
+    if(video.path!=null){
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Editor(picked: video)),
+      );
+    }
   }
 
 
@@ -32,6 +34,7 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.fromLTRB(10,120,10,0),
             child: Column(
               children: <Widget>[
+                Text('Choose a Video to Trim...',style: TextStyle(fontSize: 30,color: Colors.grey[600]),),
                 SizedBox(height: 70,),
                 RaisedButton(
                   padding: EdgeInsets.all(25),
