@@ -1,6 +1,6 @@
 # flutrim
 
-A video Trimmer example written v Flutter.
+A video trimmer example created v Flutter.
 
 Used image_picker to choose video from gallery. It browse default library path to choose media.
 
