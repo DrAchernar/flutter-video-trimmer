@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:video_player/video_player.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:flutrim/trimmer/trimmer.dart';
+import 'package:flutrim/pages/rangeslider.dart';
 
 // ignore: must_be_immutable
 class Editor extends StatefulWidget {
