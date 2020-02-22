@@ -1,6 +1,22 @@
 # flutrim
 
-A new Flutter project.
+A video Trimmer example written v Flutter.
+
+Used image_picker to choose video from gallery. It browse default library path to choose media.
+
+For iOS : If you want to choose media from camera roll (not root library list),
+ 
+you need to modify just a row in image_picker's FLTImagePickerPlugin class.
+`_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;`
+
+Then video_player, gallery_saver and ffmpeg is enough for everything.
+
+Enjoy and add new functions... for ex: crop and effect
+
+-Screenshots
+
+![s1](https://raw.githubusercontent.com/DrAchernar/flutter-video-trimmer/master/screenshots/IMG_0086.jpeg)
+![s2](https://raw.githubusercontent.com/DrAchernar/flutter-video-trimmer/master/screenshots/IMG_0088.jpeg)
 
 ## Getting Started
 
